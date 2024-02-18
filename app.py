@@ -33,16 +33,20 @@ def uploadAndApply():
 
     return {'msg': 'Archivos cargados con éxito'}
 
-@app.route("/pdb", methods=["POST"])
-def get_pdb_proceed():
-    file = request.files['file_pdb']
+@app.route("/pdb/filename", methods=["GET"])
+def get_pdb_proceed(filename):
+    folder = os.path.abspath(app.config['UPLOAD_FOLDER'])
+    filename_pdb = os.path.join(folder, 'PDBs', filename)
+    file = open(filename_pdb)
     proceed = phi_psi(file)
     print(proceed)
     return {'msg': 'Éxito', 'data': proceed}
 
-@app.route("/plot", methods=["POST"])
-def get_plot():
-    file = request.files['file_pdb']
+@app.route("/plot/filename", methods=["GET"])
+def get_plot(filename):
+    folder = os.path.abspath(app.config['UPLOAD_FOLDER'])
+    filename_pdb = os.path.join(folder, 'PDBs', filename)
+    file = open(filename_pdb)
     plot_proceed = plot(file)
     print(plot_proceed)
     return {'msg': 'Éxito', 'data': plot_proceed}

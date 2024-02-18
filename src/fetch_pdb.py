@@ -6,6 +6,15 @@ from math import pi
 from rich.console import Console
 from rich.table import Table
 
+def fetch(pdb: Union[str, list]):
+    def start(pdb_id: str):
+        return PDBList().retrieve_pdb_file(pdb_code=pdb_id, pdir='PDB', file_format='pdb')
+
+    if type(pdb) is str:
+        return start(pdb_id=pdb)
+    if type(pdb) is list:
+        return [start(pdb_id=entry) for entry in pdb]
+    
 console = Console(color_system='windows')
 
 def phi_psi(pdb_file, return_ignored=False):

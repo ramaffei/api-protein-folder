@@ -6,14 +6,7 @@ from Bio.PDB import PDBParser, PPBuilder
 from pkg_resources import resource_stream
 from math import pi
 
-def fetch(pdb: Union[str, list]):
-    def start(pdb_id: str):
-        return PDBList().retrieve_pdb_file(pdb_code=pdb_id, pdir='PDB', file_format='pdb')
 
-    if type(pdb) is str:
-        return start(pdb_id=pdb)
-    if type(pdb) is list:
-        return [start(pdb_id=entry) for entry in pdb]
     
 def plot(pdb_file, cmap='magma', alpha=0.75, dpi=100, save=True, show=False, out='plot.png'):
     batch_mode = isinstance(pdb_file, list)
@@ -82,8 +75,8 @@ def plot(pdb_file, cmap='magma', alpha=0.75, dpi=100, save=True, show=False, out
     if batch_mode:
         file_output_map = {key: None for key in pdb_file}
         for _, file in enumerate(pdb_file):
-            start(fp=file, color=list(mcolors.BASE_COLORS.keys())[_])
-            file_output_map[file] = (phi_psi_data, ignored_res, x, y)
+            file_output_map[file] = (start(fp=file, color=list(mcolors.BASE_COLORS.keys())[_]))
+            #file_output_map[file] = (phi_psi_data, ignored_res, x, y)
         ax.legend(bbox_to_anchor=(1.04, 1), loc='upper left')
     else:
         output = start(fp=pdb_file)

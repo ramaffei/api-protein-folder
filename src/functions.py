@@ -1,15 +1,21 @@
+import os
 from werkzeug.utils import secure_filename
 from zipfile import ZipFile
 
-ALLOWED_EXTENSIONS = ['zip',]
+def allowed_file(filename: str, extensions: list):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in extensions
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def extractFileByArchive(file, folder, condicion):
+def extractFileByExtension(file, folder: str, extension: str):
+    extracted = []
     with ZipFile(file) as zipfile:
-        list_name_archive = zipfile.namelist()
-        for name_archive in list_name_archive:
-            if name_archive.endswith(condicion):
-                zipfile.extract(secure_filename(name_archive), folder)
+        for zip_info in zipfile.infolist():
+            if zip_info.is_dir():
+                continue
+
+            if allowed_file(zip_info.filename, extension):
+                zip_info.filename = os.path.basename(zip_info.filename)
+                folder = os.path.join(folder, f'{extension.upper()}s')
+                extracted.append(zipfile.extract(zip_info, folder))
+    
+    return extracted
 

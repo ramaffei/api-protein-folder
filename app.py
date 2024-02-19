@@ -1,52 +1,99 @@
 import os
 from flask import Flask, request
+from flask_cors import CORS
+
 from src.fetch_pdb import phi_psi
 from src.plot import plot
-from src.functions import allowed_file, extractFileByArchive
+from src.functions import allowed_file, extractFileByExtension
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = './upload'
 
-@app.route('/',methods=["GET", "POST"])
+# Obteniendo configuración por default de archivo
+app.config.from_object('localconfig')
+
+# Permitiendo CORS para evitar problemas en ambiente de desarrollo (COMENTAR EN PRODUCCIÓN)
+cors = CORS(app, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:5500'}})
+
+# Formateando carpeta con ruta absoluta
+FOLDER = os.path.abspath(app.config['UPLOAD_FOLDER'])
+
+@app.route('/',methods=["GET"])
 def server_up():
-    return {'msg':'SERVER_UP'}
+    return {'msg':'SERVER UP'}
 
-@app.route("/upload", methods=['POST'])
-def uploadAndApply():
+@app.route("/upload/", methods=['POST'])
+def uploadAndExtract():
+    
+    # Leyendo archivo de la respuesta y comprobando extension
     file = request.files['zipFile']
-
-    if not file or not allowed_file(file.filename):
-        return {'msg': 'No se encontró el archivo valido'}, 403
+    if not file or not allowed_file(file.filename, ['zip']):
+        return {'msg': 'No se encontró un archivo valido'}, 403
     
-    folder = os.path.abspath(app.config['UPLOAD_FOLDER'])
+    extracted_archives = {}
+
+    # Extrayendo Archivos JSONs y formateando su ruta relativa
+    JSONs = extractFileByExtension(file, FOLDER, 'json')
+    JSONs = [os.path.relpath(a, FOLDER) for a in JSONs]
+    extracted_archives['JSON'] = JSONs
+
+    # Extrayendo Archivos PDBs y formateando su ruta relativa
+    PDBs = extractFileByExtension(file, FOLDER, 'pdb')
+    PDBs = [os.path.relpath(a, FOLDER) for a in PDBs]
+    extracted_archives['PDB'] = PDBs
+
+    return {'msg': 'Archivos cargados con éxito', 'data': extracted_archives}
+
+@app.route("/pdb/", methods=["POST"])
+def get_pdb_proceed():
+
+    # Leyendo datos del cuerpo de la solicitud
+    datos = request.get_json()
+    filenames = datos.get('filenames')
+    if not filenames or len(filenames)<1:
+        return {'msg': 'Error, no se encontraron archivos'}
+    ignored_residues = datos.get('ignored_residues', False)
     
-    try:
-        # Archivos JSONs
-        folder_json = os.path.join(folder, 'JSONs')
-        extractFileByArchive(file, folder_json, '.json')
+    # Formateando nombre del archivo con la ubicación del mismo
+    filename_pdb = [os.path.join(FOLDER, filename) for filename in filenames]
 
-        # Archivos PDBs
-        folder_pdb = os.path.join(folder, 'PDBs')
-        extractFileByArchive(file, folder_pdb, '.pdb')
-    except:
-        {'msg': 'Ocurrió un error al cargar los archivos'}
+    # Ejecutando procedimiento
+    proceed = phi_psi(filename_pdb, ignored_residues)
 
-    return {'msg': 'Archivos cargados con éxito'}
-
-@app.route("/pdb/filename", methods=["GET"])
-def get_pdb_proceed(filename):
-    folder = os.path.abspath(app.config['UPLOAD_FOLDER'])
-    filename_pdb = os.path.join(folder, 'PDBs', filename)
-    file = open(filename_pdb)
-    proceed = phi_psi(file)
-    print(proceed)
     return {'msg': 'Éxito', 'data': proceed}
 
-@app.route("/plot/filename", methods=["GET"])
-def get_plot(filename):
-    folder = os.path.abspath(app.config['UPLOAD_FOLDER'])
-    filename_pdb = os.path.join(folder, 'PDBs', filename)
-    file = open(filename_pdb)
-    plot_proceed = plot(file)
-    print(plot_proceed)
-    return {'msg': 'Éxito', 'data': plot_proceed}
+@app.route("/pdb/plot/", methods=["POST"])
+def get_plot():
+    
+    # Leyendo datos del cuerpo de la solicitud
+    datos = request.get_json()
+    filename = datos.get('filename')
+    if not filename:
+        return {'msg': 'Error, no se encontró ningún archivo'}
+    
+    # Formateando nombre del archivo con la ubicación del mismo
+    filename_pdb = os.path.join(FOLDER, filename)
+
+    # Ejecutando procedimiento
+    plot_proceed = plot(filename_pdb)
+
+    return {'msg': 'Éxito'}
+
+@app.route("/pdb/plots/", methods=["POST"])
+def get_plots():
+    
+    # Leyendo datos del cuerpo de la solicitud
+    datos = request.get_json()
+    filenames = datos.get('filenames')
+    if not filenames or len(filenames)<1:
+        return {'msg': 'Error, no se encontraron archivos'}
+    
+    # Formateando nombre del archivo con la ubicación del mismo
+    filename_pdb = [os.path.join(FOLDER, filename) for filename in filenames]
+    
+    # Ejecutando procedimiento
+    plot_proceed = plot(filename_pdb)
+
+    return {'msg': 'Éxito'}
+
+if __name__ == '__main__':
+   app.run()

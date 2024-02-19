@@ -6,8 +6,8 @@ from Bio.PDB import PDBParser, PPBuilder
 from pkg_resources import resource_stream
 from math import pi
 
-def plot(pdb_file, cmap='magma', alpha=0.75, dpi=100, save=True, show=False, out='plot.png'):
-    batch_mode = isinstance(pdb_file, list)
+def saveplot(pdb_file, cmap='magma', alpha=0.75, dpi=100, out='plot.png'):
+    batch_mode = len(pdb_file) > 0
 
     def get_ignored_res(file: str):
         x, y, ignored, output = [], [], [], {}
@@ -29,14 +29,10 @@ def plot(pdb_file, cmap='magma', alpha=0.75, dpi=100, save=True, show=False, out
 
         return output, ignored, x, y
 
-    size = [(8.5, 5) if batch_mode else (5.5, 5)][0]
+    size = (8.5, 5) if batch_mode else (5.5, 5)
     plt.figure(figsize=size, dpi=dpi)
     ax = plt.subplot(111)
     ax.set_title("".join(["Batch" if batch_mode else pdb_file]))
-
-    # Import 'density_estimate.dat' data file
-    #Z = np.fromfile(resource_stream('RamachanDraw', '/content/RamachanDraw/data/density_estimate.dat'))
-    #Z = np.reshape(Z, (100, 100))
 
     Z = np.fromfile("AlphaRamachan/data/density_estimate.dat")
     Z = np.reshape(Z, (100, 100))
@@ -63,29 +59,22 @@ def plot(pdb_file, cmap='magma', alpha=0.75, dpi=100, save=True, show=False, out
                antialiased=True, extent=[-180, 180, -180, 180], alpha=0.65)
     
 
-    def start(fp, color=None):
+    def start(fp, color="k"):
         assert os.path.exists(fp), \
             'Unable to fetch file: {}. PDB entry probably does not exist.'.format(fp)
         phi_psi_data, ignored_res, x, y = get_ignored_res(file=fp)
-        ax.scatter(x, y, marker='.', s=3, c="".join([color if color else 'k']), label=fp)
+        ax.scatter(x, y, marker='.', s=3, c=color, label=fp)
         return phi_psi_data, ignored_res, x, y
 
     if batch_mode:
         file_output_map = {key: None for key in pdb_file}
         for _, file in enumerate(pdb_file):
             file_output_map[file] = (start(fp=file, color=list(mcolors.BASE_COLORS.keys())[_]))
-            #file_output_map[file] = (phi_psi_data, ignored_res, x, y)
         ax.legend(bbox_to_anchor=(1.04, 1), loc='upper left')
     else:
         output = start(fp=pdb_file)
 
-    if save:
-        plt.savefig(out)
-    if show:
-        plt.show()
+    plt.savefig(out)
 
     # Return params
-    if batch_mode:
-        return ax, None #file_output_map
-    else:
-        return ax, None #output
+    return ax

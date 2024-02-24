@@ -5,6 +5,7 @@ import numpy as np
 from Bio.PDB import PDBParser, PPBuilder
 from pkg_resources import resource_stream
 from math import pi
+import io
 
 def plot(pdb_file, cmap='magma', alpha=0.75, dpi=100, save=True, show=False, out='plot.png'):
     batch_mode = isinstance(pdb_file, list)
@@ -80,7 +81,10 @@ def plot(pdb_file, cmap='magma', alpha=0.75, dpi=100, save=True, show=False, out
         output = start(fp=pdb_file)
 
     if save:
-        plt.savefig(out)
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+        return buffer
     if show:
         plt.show()
 

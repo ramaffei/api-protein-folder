@@ -1,5 +1,6 @@
+import base64
 import os
-from flask import Flask, request
+from flask import Flask, request, send_file
 from flask_cors import CORS
 
 from src.fetch_pdb import phi_psi
@@ -75,8 +76,10 @@ def get_plot():
 
     # Ejecutando procedimiento
     plot_proceed = plot(filename_pdb)
+    encoded_image = base64.b64encode(plot_proceed.read()).decode('utf-8')
 
-    return {'msg': 'Éxito'}
+    #return send_file(plot_proceed, mimetype='image/png')
+    return {'msg': 'Éxito', 'data': encoded_image}
 
 @app.route("/pdb/plots/", methods=["POST"])
 def get_plots():
@@ -93,7 +96,10 @@ def get_plots():
     # Ejecutando procedimiento
     plot_proceed = plot(filename_pdb)
 
-    return {'msg': 'Éxito'}
+    encoded_image = base64.b64encode(plot_proceed.read()).decode('utf-8')
+
+    #return send_file(plot_proceed, mimetype='image/png')
+    return {'msg': 'Éxito', 'data': encoded_image}
 
 if __name__ == '__main__':
    app.run()

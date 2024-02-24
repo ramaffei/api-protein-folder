@@ -7,7 +7,7 @@ Para ejecutar este proyecto en tu máquina local, sigue estos pasos:
 1. **Clonar el Repositorio:** 
 
 ```bash
-git clone https://github.com/ramaffei/api_protein_folder.git
+git clone https://github.com/ramaffei/api-protein-folder.git
 ``` 
 2. **Crear un Entorno Virtual (opcional pero recomendado):** 
 

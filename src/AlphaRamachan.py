@@ -7,7 +7,7 @@ from pkg_resources import resource_stream
 from math import pi
 import io
 
-def plot(pdb_file, cmap='magma', alpha=0.75, dpi=100, save=True, show=False, out='plot.png'):
+def plot(pdb_file, cmap='magma', alpha=0.75, dpi=200, save=True, show=False, out='plot.png'):
     batch_mode = isinstance(pdb_file, list)
 
     def get_ignored_res(file: str):
@@ -30,14 +30,12 @@ def plot(pdb_file, cmap='magma', alpha=0.75, dpi=100, save=True, show=False, out
 
         return output, ignored, x, y
 
-    size = [(8.5, 5) if batch_mode else (5.5, 5)][0]
+    size = [(8.5, 5) if batch_mode else (11, 10)][0]
     plt.figure(figsize=size, dpi=dpi)
     ax = plt.subplot(111)
-    ax.set_title("".join(["Batch" if batch_mode else pdb_file]))
+    pdb_name = pdb_file.split('/')[-1]
+    ax.set_title("".join(["Batch" if batch_mode else pdb_name]))
 
-    # Import 'density_estimate.dat' data file
-    #Z = np.fromfile(resource_stream('RamachanDraw', '/content/RamachanDraw/data/density_estimate.dat'))
-    #Z = np.reshape(Z, (100, 100))
 
     Z = np.fromfile("AlphaRamachan/data/density_estimate.dat")
     Z = np.reshape(Z, (100, 100))

@@ -4,8 +4,9 @@ from flask import Flask, request, send_file
 from flask_cors import CORS
 
 from src.fetch_pdb import phi_psi
-from src.plot import plot
+from src.AlphaRamachan import plot
 from src.functions import allowed_file, extractFileByExtension
+from src.z_scores import plot_z_scores_from_json
 
 app = Flask(__name__)
 
@@ -62,8 +63,26 @@ def get_pdb_proceed():
 
     return {'msg': 'Éxito', 'data': proceed}
 
-@app.route("/pdb/plot/", methods=["POST"])
-def get_plot():
+@app.route("/json/plot/zscores/", methods=["POST"])
+def get_plot_z_scores():
+    # Leyendo datos del cuerpo de la solicitud
+    datos = request.get_json()
+    filename = datos.get('filename')
+    if not filename:
+        return {'msg': 'Error, no se encontró ningún archivo'}
+    
+    # Formateando nombre del archivo con la ubicación del mismo
+    filename_json = os.path.join(FOLDER, filename)
+
+    # Ejecutando procedimiento
+    plot_proceed = plot_z_scores_from_json(filename_json, show=True)
+    encoded_image = base64.b64encode(plot_proceed.read()).decode('utf-8')
+
+    #return send_file(plot_proceed, mimetype='image/png')
+    return {'msg': 'Éxito', 'data': encoded_image}
+
+@app.route("/pdb/plot/ramachandran/", methods=["POST"])
+def get_plot_ramachan():
     
     # Leyendo datos del cuerpo de la solicitud
     datos = request.get_json()

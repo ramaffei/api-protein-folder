@@ -169,3 +169,7 @@ src/test.py
 
 # Carpeta vercel
 .vercel
+/vercel.json
+
+*.cookies
+*.FASTA

@@ -11,7 +11,7 @@ from src.z_scores import plot_z_scores_from_json
 app = Flask(__name__)
 
 # Obteniendo configuración por default de archivo
-app.config.from_object('localconfig')
+#app.config.from_object('localconfig')
 
 # Permitiendo CORS para evitar problemas en ambiente de desarrollo (COMENTAR EN PRODUCCIÓN)
 cors = CORS(app, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:5500'}})

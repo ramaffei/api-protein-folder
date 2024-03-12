@@ -173,4 +173,4 @@ src/test.py
 *.cookies
 
 *.FASTA
-vercel.json
+.vercel

@@ -11,10 +11,11 @@ from src.z_scores import plot_z_scores_from_json
 app = Flask(__name__)
 
 # Obteniendo configuración por default de archivo
-app.config.from_object('localconfig')
+settings_module = os.getenv('APP_SETTINGS_MODULE')
+app.config.from_object(settings_module)
 
 # Permitiendo CORS para evitar problemas en ambiente de desarrollo (COMENTAR EN PRODUCCIÓN)
-cors = CORS(app, supports_credentials=True, resources={r'/*': {'origins': 'http://localhost:5500'}})
+cors = CORS(app, supports_credentials=True, resources={r'/*': {'origins': '*'}})
 
 # Formateando carpeta con ruta absoluta
 FOLDER = os.path.abspath(app.config['UPLOAD_FOLDER'])

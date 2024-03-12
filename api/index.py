@@ -27,6 +27,8 @@ def server_up():
 def uploadAndExtract():
     
     # Leyendo archivo de la respuesta y comprobando extension
+    print(request)
+    print(request.files)
     file = request.files['zipFile']
     if not file or not allowed_file(file.filename, ['zip']):
         return {'msg': 'No se encontró un archivo valido'}, 403

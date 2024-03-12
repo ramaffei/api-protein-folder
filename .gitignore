@@ -168,6 +168,9 @@ localconfig.py
 src/test.py
 
 # Carpeta vercel
-
+/.vercel
+.vercel/
 *.cookies
+
 *.FASTA
+vercel.json

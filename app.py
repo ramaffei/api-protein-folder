@@ -18,7 +18,7 @@ app.config.from_object(settings_module)
 cors = CORS(app, supports_credentials=True, resources={r'/*': {'origins': '*'}})
 
 # Formateando carpeta con ruta absoluta
-FOLDER = os.path.abspath(app.config['UPLOAD_FOLDER'])
+FOLDER = app.config['BASE_DIR']+app.config['UPLOAD_FOLDER']
 
 @app.route('/',methods=["GET"])
 def server_up():

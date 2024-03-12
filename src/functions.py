@@ -15,6 +15,7 @@ def extractFileByExtension(file, folder: str, extension: str):
             if allowed_file(zip_info.filename, extension):
                 zip_info.filename = os.path.basename(zip_info.filename)
                 folder_ext = os.path.join(folder, f'{extension.upper()}s')
+                print(folder)
                 extracted.append(zipfile.extract(zip_info, folder_ext))
     
     return extracted

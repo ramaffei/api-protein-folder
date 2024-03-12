@@ -37,7 +37,7 @@ def plot(pdb_file, cmap='magma', alpha=0.75, dpi=200, save=True, show=False, out
     ax.set_title("".join(["Batch" if batch_mode else pdb_name]))
 
 
-    Z = np.fromfile("../AlphaRamachan/data/density_estimate.dat")
+    Z = np.fromfile("/src/AlphaRamachan/data/density_estimate.dat")
     Z = np.reshape(Z, (100, 100))
 
     ax.set_aspect('equal')

@@ -174,3 +174,4 @@ src/test.py
 
 *.FASTA
 .vercel
+/results

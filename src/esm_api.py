@@ -1,9 +1,6 @@
 import os
-import time
 import requests
-import biotite.structure.io as bsio
-from src.AlphaRamachan import plot
-from src.fetch_pdb import phi_psi
+
 
 URL_API = 'https://api.esmatlas.com'
 
@@ -65,7 +62,7 @@ def get_PDB_first_similar_sequence(data):
     header = data.get('header', '>unnamed')
     sequence = data.get('sequence')
     data = {
-        'q': f'{header}\n{sequence}',
+        'q': f'>{header}\n{sequence}',
         'mode':'accept',
         'email':'rodrigoa.maffei@gmail.com',
         'database[]':'highquality_clust30'
@@ -110,7 +107,6 @@ def get_ticket_result(ticket_id):
         )
         if response2.status_code == 200:
             response_json2 = response2.json()
-            print(response_json2)
             return response_json2.get('results')
 
 if __name__ == '__main__':

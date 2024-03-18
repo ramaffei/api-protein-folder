@@ -1,13 +1,15 @@
 import base64
 import os
+import tempfile
+
 from flask import Flask, request, send_file
 from flask_cors import CORS
 
 from src.fetch_pdb import phi_psi
 from src.AlphaRamachan import plot
-from src.functions import allowed_file, extractFileByExtension
+from src.functions import allowed_file, extractFileByExtension, fastaToList
 from src.z_scores import plot_z_scores_from_json
-
+from src.esm_api import get_PDB_by_sequence, get_PDB_first_similar_sequence 
 app = Flask(__name__)
 
 # Obteniendo configuración por default de archivo
@@ -23,6 +25,34 @@ FOLDER = os.path.dirname(os.path.abspath(__file__))+'/upload'
 @app.route('/',methods=["GET"])
 def server_up():
     return {'msg':'SERVER UP'}
+
+@app.route("/pdb/esm/fasta/", methods=['POST'])
+def getPDBsByFasta():
+    file = request.files['fastaFile']
+    if not file or not allowed_file(file.filename, ['fasta', 'FASTA']):
+        return {'msg': 'No se encontró un archivo valido'}, 403
+    
+    temp_file = tempfile.TemporaryFile()
+    file.save(temp_file)
+    temp_file.seek(0)
+    sequences = fastaToList(temp_file.read().decode("utf-8"))
+    temp_file.close()
+    pdbs = []
+    for sequence in sequences:
+        print(sequence)
+        try:
+            pdb_similar = get_PDB_first_similar_sequence(sequence)
+            pdb_sequence = get_PDB_by_sequence(sequence)
+        except ValueError as e:
+            return {'msg': 'No se pudo procesar la solicitud'}, 400
+        pdbs.append({
+            sequence.get('header', 'no_name'): {
+                'pdb': pdb_sequence,
+                'pdb_comparacion': pdb_similar
+            }
+        })
+    
+    return {'msg': 'Archivos descargados con éxito', 'data': pdbs}
 
 @app.route("/upload/", methods=['POST'])
 def uploadAndExtract():

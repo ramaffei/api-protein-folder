@@ -74,7 +74,7 @@ def get_PDB_first_similar_sequence(data, folder = ''):
     ticket_id = json_reponse.get('id')
 
     result = get_ticket_result(ticket_id)
-
+    print(result)
     if not result:
         raise 'Ticket result error'
     
@@ -100,8 +100,9 @@ def get_ticket_result(ticket_id):
         raise 'Error, no ticket id'
     
     endpoint = '/searchSequence/result/'
-        
-    while True:
+    print(endpoint)
+    i = 0;    
+    while i < 15 and True:
         response2 = requests.get(
         f'{URL_API}{endpoint}{ticket_id}/0',
         headers=headers, verify=False
@@ -109,7 +110,9 @@ def get_ticket_result(ticket_id):
         if response2.status_code == 200:
             response_json2 = response2.json()
             return response_json2.get('results')
-
+        print(response2.status_code)
+        i = i+1
+    raise ValueError('Result not found')
 if __name__ == '__main__':
     data = {
         'header': '>1E',

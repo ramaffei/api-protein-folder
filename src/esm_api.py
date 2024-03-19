@@ -1,6 +1,7 @@
 import os
 import requests
-
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 URL_API = 'https://api.esmatlas.com'
 

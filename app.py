@@ -8,7 +8,7 @@ from flask_cors import CORS
 from src.fetch_pdb import phi_psi
 from src.AlphaRamachan import plot
 from src.functions import allowed_file, extractFileByExtension, fastaToList
-from src.z_scores import plot_z_scores_from_json
+from src.z_scores import calcular_zscore_desde_pdb, plot_z_scores_from_json, graficar_zscores
 from src.esm_api import get_PDB_by_sequence, get_PDB_first_similar_sequence 
 app = Flask(__name__)
 
@@ -21,7 +21,8 @@ cors = CORS(app, supports_credentials=True, resources={r'/*': {'origins': '*'}})
 
 # Formateando carpeta con ruta absoluta
 #FOLDER = app.config['BASE_DIR']+app.config['UPLOAD_FOLDER']
-FOLDER = os.path.dirname(os.path.abspath(__file__))+'/upload'
+FOLDER = os.path.dirname(os.path.abspath(__file__))+'/results'
+
 @app.route('/',methods=["GET"])
 def server_up():
     return {'msg':'SERVER UP'}
@@ -37,22 +38,38 @@ def getPDBsByFasta():
     temp_file.seek(0)
     sequences = fastaToList(temp_file.read().decode("utf-8"))
     temp_file.close()
-    pdbs = []
+
+    pdbs = {}
     for sequence in sequences:
-        print(sequence)
         try:
-            pdb_similar = get_PDB_first_similar_sequence(sequence)
-            pdb_sequence = get_PDB_by_sequence(sequence)
+            pdb_similar = get_PDB_first_similar_sequence(sequence, FOLDER)
+            pdb_sequence = get_PDB_by_sequence(sequence, FOLDER)
         except ValueError as e:
             return {'msg': 'No se pudo procesar la solicitud'}, 400
-        pdbs.append({
-            sequence.get('header', 'no_name'): {
+        pdbs[sequence.get('header', 'no_name')] = {
                 'pdb': pdb_sequence,
                 'pdb_comparacion': pdb_similar
             }
-        })
-    
+        
     return {'msg': 'Archivos descargados con éxito', 'data': pdbs}
+
+@app.route("/pdb/plot/zscores/", methods=['POST'])
+def get_plot_zscores_compare():
+    # Leyendo datos del cuerpo de la solicitud
+    datos = request.get_json()
+    filenames = datos.get('filenames')
+    if not filenames or len(filenames) != 2:
+        return {'msg': 'Error, se necesitan 2 archivos para graficar z_scores'}
+    
+    # Formateando nombre del archivo con la ubicación del mismo
+    filename_pdb = [os.path.join(FOLDER, filename) for filename in filenames]
+
+    z_scores = calcular_zscore_desde_pdb(filename_pdb[0], filename_pdb[1])
+    plot_proceed = graficar_zscores(z_scores)
+    encoded_image = base64.b64encode(plot_proceed.read()).decode('utf-8')
+
+    #return send_file(plot_proceed, mimetype='image/png')
+    return {'msg': 'Éxito', 'data': encoded_image}
 
 @app.route("/upload/", methods=['POST'])
 def uploadAndExtract():

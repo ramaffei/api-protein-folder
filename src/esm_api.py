@@ -4,7 +4,7 @@ import requests
 
 URL_API = 'https://api.esmatlas.com'
 
-def get_PDB_by_sequence(data, filename = ''):
+def get_PDB_by_sequence(data, folder = '', filename = ''):
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
     }
@@ -21,9 +21,10 @@ def get_PDB_by_sequence(data, filename = ''):
     
     if not filename:
         name = sequence[:3] + sequence[-3:]
-        filename = os.path.join(f'results/{header.replace(">","")}_{name}.pdb')
+        filename = f'{header.replace(">","")}_{name}.pdb'
+        file = os.path.join(folder,filename)
     
-    with open(filename, 'w') as f:
+    with open(file, 'w') as f:
         f.write(pdb_string)
     
     return filename
@@ -32,7 +33,7 @@ def get_PDB_by_sequence(data, filename = ''):
     # plDDT value is stored in the B-factor field
     #plot_proceed = plot(filename, save=False, show=True) """
 
-def get_PDB_by_targetID(target_id):
+def get_PDB_by_targetID(target_id, folder = ''):
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
     }
@@ -41,14 +42,14 @@ def get_PDB_by_targetID(target_id):
     response = requests.get(f'{URL_API}{endpoint}', headers=headers, verify=False)
     pdb_string = response.content.decode('utf-8')
     
-    filename = os.path.join(f'results/{target_id}.pdb')
+    filename = os.path.join(folder, f'{target_id}.pdb')
     
     with open(filename, 'w') as f:
         f.write(pdb_string)
     
     return filename
 
-def get_PDB_first_similar_sequence(data):
+def get_PDB_first_similar_sequence(data, folder = ''):
     
     headers = {
     'authority': 'api.esmatlas.com',
@@ -84,7 +85,7 @@ def get_PDB_first_similar_sequence(data):
     seq_max_scores = max(sequences, key=lambda x:x['score'])
     target_id = seq_max_scores.get('target')
 
-    return get_PDB_by_targetID(target_id)
+    return get_PDB_by_targetID(target_id, folder)
 
 def get_ticket_result(ticket_id):
     headers = {
